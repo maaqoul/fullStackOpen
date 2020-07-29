@@ -1,22 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
+import axios from 'axios';
 
+const URL = 'http://localhost:3001';
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-1234567', id: 0 },
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ]);
+  const [persons, setPersons] = useState([]);
   const [filteredPersons, setFilteredPersons] = useState(null);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [search, setNewSearch] = useState('');
   const [id, setId] = useState(5);
 
+  const handlePersonsResponse = (response) => {
+    if (response) {
+      console.log(response);
+      setPersons(response)
+    }
+  }
   const handleNewName = ({ target }) => {
     setNewName(target.value);
   }
@@ -46,6 +48,11 @@ const App = () => {
       setFilteredPersons(null)
     }
   }
+
+  useEffect(
+    () => {
+      axios.get(`${URL}/persons`).then(({data}) => handlePersonsResponse(data))
+    }, [])
   return (
     <div>
       <h2>Phonebook</h2>
