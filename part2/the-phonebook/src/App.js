@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react'
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
-import axios from 'axios';
 import personService from './services/personService';
+import Notification from './components/Notification';
 
-const URL = 'http://localhost:3001';
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [filteredPersons, setFilteredPersons] = useState(null);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [search, setNewSearch] = useState('');
+  const [notification, setNotification] = useState({ message: null, type: null })
 
   const handlePersonsResponse = (response) => {
     if (response) {
@@ -27,6 +27,13 @@ const App = () => {
     setNewNumber(target.value);
   }
 
+  const showNotification = (type, message) => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification({ message: null, type: null });
+    }, 3000)
+  }
+
   const addPerson = (event) => {
     event.preventDefault()
 
@@ -37,8 +44,13 @@ const App = () => {
       if (answer) {
         personFound = { ...personFound, number: newNumber }
         personService.updatePerson(personFound.id, personFound).then(
-          returnedPerson => setPersons(persons.map(person => person.id !== personFound.id ? person : returnedPerson))
-        ).catch(error => alert(error))
+          returnedPerson => {
+            setPersons(persons.map(person => person.id !== personFound.id ? person : returnedPerson))
+            showNotification(`${returnedPerson.number} updated with success`, 'success');
+          }
+        ).catch(error => {
+          showNotification(`an error has been occurred please try again later!`, 'error');
+        })
       } else {
         return;
       }
@@ -48,8 +60,11 @@ const App = () => {
         setPersons(persons.concat(response))
         setNewName('');
         setNewNumber('');
+        showNotification(`${response.name} added with success`, 'success');
       })
-        .catch(error => alert(error))
+        .catch(error => {
+          showNotification(`an error has been occurred please try again later!`, 'error');
+        })
     }
 
 
@@ -71,8 +86,13 @@ const App = () => {
     if (answer) {
       personService
         .deletePerson(id)
-        .then(() => setPersons(persons.filter(person => person.id !== id)))
-        .catch(error => alert(error))
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id));
+          showNotification(`${name} added with success`, 'success');
+        })
+        .catch(error => {
+          showNotification(`an error has been occurred please try again later!`, 'error');
+        })
     } else {
       return;
     }
@@ -83,13 +103,16 @@ const App = () => {
       personService
         .getAllPersons()
         .then(response => handlePersonsResponse(response))
-        .catch(error => alert(error))
+        .catch(error => {
+          showNotification(`an error has been occurred please try again later!`, 'error');
+        })
     }, [])
 
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification type={notification.type} message={notification.message} />
       <Filter search={search} handleOnSearch={handleOnSearch} />
       <h3>add a new</h3>
       <PersonForm
