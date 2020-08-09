@@ -27,7 +27,7 @@ const App = () => {
     setNewNumber(target.value);
   }
 
-  const showNotification = (type, message) => {
+  const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification({ message: null, type: null });
@@ -46,10 +46,12 @@ const App = () => {
         personService.updatePerson(personFound.id, personFound).then(
           returnedPerson => {
             setPersons(persons.map(person => person.id !== personFound.id ? person : returnedPerson))
+            setNewName('');
+            setNewNumber('');
             showNotification(`${returnedPerson.number} updated with success`, 'success');
           }
         ).catch(error => {
-          showNotification(`an error has been occurred please try again later!`, 'error');
+          showNotification(error.response.data.error, 'error');
         })
       } else {
         return;
@@ -63,7 +65,7 @@ const App = () => {
         showNotification(`${response.name} added with success`, 'success');
       })
         .catch(error => {
-          showNotification(`an error has been occurred please try again later!`, 'error');
+          showNotification(error.response.data.error, 'error');
         })
     }
 
